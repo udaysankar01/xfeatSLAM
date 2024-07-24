@@ -1,0 +1,3 @@
+libeigen3-dev        # for performing matrix operations
+libopencv-dev        # for image processing and feature extraction
+libgoogle-glog-dev   # for logging
