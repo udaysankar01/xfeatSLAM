@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
 
     // Detect and match features in the image
     int top_k = 4096;  // Example value for top_k
-    float min_cossim = 0.4;  // Example value for minimum cosine similarity
+    float min_cossim = -1;  // Example value for minimum cosine similarity
     bool use_cuda = true;  // Use CUDA if available
 
     // Perform feature matching on the same image

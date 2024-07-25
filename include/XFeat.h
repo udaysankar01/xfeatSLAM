@@ -65,11 +65,12 @@ namespace ORB_SLAM3
     {
     public:
         XFDetector(std::shared_ptr<XFeatModel> _model);
-        // void detect(cv::Mat &image, bool cuda);
-        std::vector<std::unordered_map<std::string, torch::Tensor>> detectAndCompute(torch::Tensor x, int top_k, float detection_threshold, bool cuda);
-        std::tuple<torch::Tensor, torch::Tensor> match(torch::Tensor feats1, torch::Tensor feats2, float min_cosim = 0.82);
+        std::vector<std::unordered_map<std::string, torch::Tensor>> detectAndCompute(torch::Tensor x, int top_k, bool cuda);
+        std::tuple<torch::Tensor, torch::Tensor> match(torch::Tensor feats1, torch::Tensor feats2, float min_cossim = -1);
         std::pair<cv::Mat, cv::Mat> match_xfeat(cv::Mat& img1, cv::Mat& img2, int top_k, float min_cossim = -1);
         void warp_corners_and_draw_matches(cv::Mat& mkpts_0, cv::Mat& mkpts_1, cv::Mat& img1, cv::Mat& img2);
+        
+        // void detect(cv::Mat &image, bool cuda);
         // std::vector<cv::KeyPoint> getKeyPoints(float threshold, int iniX, int maxX, int iniY, int maxY, std::vector<cv::KeyPoint> &keypoints, bool nms);
         // void computeDescriptors(const std::vector<cv::KeyPoint> &keypoints, cv::Mat &descriptors);
         
@@ -82,8 +83,9 @@ namespace ORB_SLAM3
         
         std::shared_ptr<XFeatModel> model;
         InterpolateSparse2d interpolator;
-        torch::Tensor mProb;
-        torch::Tensor mDesc;
+        // torch::Tensor mProb;
+        // torch::Tensor mDesc;
+        float detection_threshold;
     };
 
 }  // namepsace ORB_SLAM3

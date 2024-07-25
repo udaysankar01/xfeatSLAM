@@ -179,9 +179,10 @@ namespace ORB_SLAM3
     XFDetector::XFDetector(std::shared_ptr<XFeatModel> _model) : model(_model)
     {
         interpolator = InterpolateSparse2d("bilinear");      
+        detection_threshold = 0.05;
     }
 
-    std::vector<std::unordered_map<std::string, torch::Tensor>> XFDetector::detectAndCompute(torch::Tensor x, int top_k, float detection_threshold, bool cuda)
+    std::vector<std::unordered_map<std::string, torch::Tensor>> XFDetector::detectAndCompute(torch::Tensor x, int top_k, bool cuda)
     {
         /*
             Compute sparse keypoints & descriptors. Supports batched mode.
@@ -245,8 +246,6 @@ namespace ORB_SLAM3
 
         auto min_val = feats.min();
         auto max_val = feats.max();
-        // std::cout << "Descriptor min: " << min_val << " max: " << max_val << std::endl;
-
 
         // correct kpt scale
         torch::Tensor scaling_factors = torch::tensor({rw1, rh1}, mkpts.options()).view({1, 1, -1});
@@ -265,7 +264,7 @@ namespace ORB_SLAM3
     }   
 
     std::tuple<torch::Tensor, torch::Tensor> XFDetector::match(torch::Tensor feats1, torch::Tensor feats2, float min_cossim)
-    {
+    {   
         // compute cossine similarity between feats1 and feats2
         torch::Tensor cossim = torch::matmul(feats1, feats2.t());
         torch::Tensor cossim_t = torch::matmul(feats2, feats1.t());
@@ -300,8 +299,8 @@ namespace ORB_SLAM3
         torch::Tensor tensor_img1 = parseInput(img1);
         torch::Tensor tensor_img2 = parseInput(img2);
 
-        auto out1 = detectAndCompute(tensor_img1, top_k, 0.5, true)[0]; // no batches
-        auto out2 = detectAndCompute(tensor_img2, top_k, 0.5, true)[0];
+        auto out1 = detectAndCompute(tensor_img1, top_k, /*use_cuda*/true)[0]; // no batches
+        auto out2 = detectAndCompute(tensor_img2, top_k, /*use_cuda*/true)[0];
 
         torch::Tensor idxs0, idxs1;
         std::tie(idxs0, idxs1) = match(out1["descriptors"], out2["descriptors"], min_cossim);
@@ -321,8 +320,9 @@ namespace ORB_SLAM3
             std::cerr << "Not enough points to compute homography" << std::endl;
             return;
         }
+
         cv::Mat mask;
-        cv::Mat H = cv::findHomography(ref_points, dst_points, cv::USAC_MAGSAC, 3.5, mask, 1000, 0.999);
+        cv::Mat H = cv::findHomography(ref_points, dst_points, cv::USAC_MAGSAC, 10.0, mask, 1000, 0.994);
         if (H.empty()) {
             std::cerr << "Homography matrix is empty" << std::endl;
             return;
