@@ -13,6 +13,31 @@ git submodule sync
 python tools/build_libtorch.py
 cd ../..
 
+# setup g2o
+cd thirdparty/g2o
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j8
+cd ../../..
+
+# setup DBoW2
+cd thirdparty/DBoW2
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j8
+cd ../../..
+
+# setup Sophus
+cd thirdparty/Sophus
+mkdir -p build
+cd build
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make -j8
+cd ../../..
+
+
 # setup Pangolin
 cd thirdparty
 git clone https://github.com/stevenlovegrove/Pangolin
@@ -31,3 +56,4 @@ elif [[ "$choice" == "N" || "$choice" == "n" ]]; then
 else
     echo "Choose either of these: [Y, y, N, n]"
 fi
+cd ../../..

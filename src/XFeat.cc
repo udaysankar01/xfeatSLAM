@@ -3,7 +3,7 @@
 
 namespace ORB_SLAM3
 {
-    /////////////////////////////  The Basic Layer  ////////////////////////////////////
+    /////////////////////////////  MODEL IMPLEMENTATION  ////////////////////////////////////
     BasicLayerImpl::BasicLayerImpl(int in_channels, 
                     int out_channels, 
                     int kernel_size,
@@ -27,8 +27,6 @@ namespace ORB_SLAM3
         return layer->forward(x);
     }
 
-
-    //////////////////////////////// The XFeat Model  ///////////////////////////////
     XFeatModel::XFeatModel()
     {
         norm = torch::nn::InstanceNorm2d(1);
@@ -175,31 +173,37 @@ namespace ORB_SLAM3
     }
 
 
-    // XFDetector Implementation
-    XFDetector::XFDetector(std::shared_ptr<XFeatModel> _model) : model(_model)
-    {
-        interpolator = InterpolateSparse2d("bilinear");      
-        detection_threshold = 0.05;
+    ////////////////////////////////  POST PROCESSING  /////////////////////////////////////
+    XFDetector::XFDetector(int _top_k, float _detection_threshold, bool use_cuda) 
+        : top_k(_top_k), 
+          detection_threshold(_detection_threshold)
+    {   
+        // load the model
+        weights = "weights/xfeat.pt";
+        model = std::make_shared<XFeatModel>();
+        torch::serialize::InputArchive archive;
+        archive.load_from(getWeightsPath(weights));
+        model->load(archive);
+        std::cout << "Model weights loaded successfully." << std::endl;
+
+        // move the model to device
+        device_type = (use_cuda && torch::cuda::is_available()) ? torch::kCUDA : torch::kCPU;
+        torch::Device device(device_type);
+        std::cout << "Device: " << device << '\n';
+        model->to(device);
+
+        // load the bilinear interpolator
+        bilinear = std::make_shared<InterpolateSparse2d>("bilinear");     
+        nearest  = std::make_shared<InterpolateSparse2d>("nearest"); 
+
+        // cosine similarity matching threshold
+        min_cossim = -1;
     }
 
-    std::vector<std::unordered_map<std::string, torch::Tensor>> XFDetector::detectAndCompute(torch::Tensor x, int top_k, bool cuda)
-    {
-        /*
-            Compute sparse keypoints & descriptors. Supports batched mode.
-
-            input:
-                x -> torch.Tensor(B, C, H, W): grayscale or rgb image
-                top_k -> int: keep best k features
-            return:
-                List[Dict]: 
-                    'keypoints'    ->   torch.Tensor(N, 2): keypoints (x,y)
-                    'scores'       ->   torch.Tensor(N,): keypoint scores
-                    'descriptors'  ->   torch.Tensor(N, 64): local features
-        */
-
-        bool use_cuda = cuda && torch::cuda::is_available();
-        torch::DeviceType device_type = (use_cuda) ? torch::kCUDA : torch::kCPU;
+    std::vector<std::unordered_map<std::string, torch::Tensor>> XFDetector::detectAndCompute(torch::Tensor& x)
+    {   
         torch::Device device(device_type);
+        x = x.to(device);
 
         float rh1, rw1;
         std::tie(x, rh1, rw1) = preprocessTensor(x);
@@ -219,9 +223,7 @@ namespace ORB_SLAM3
         torch::Tensor mkpts = NMS(K1h, detection_threshold, 5);
 
         // compute reliability scores
-        InterpolateSparse2d _nearest  = InterpolateSparse2d("nearest");
-        InterpolateSparse2d _bilinear = InterpolateSparse2d("bilinear");
-        auto scores = (_nearest.forward(K1h, mkpts, _H1, _W1) * _bilinear.forward(H1, mkpts, _H1, _W1)).squeeze(-1);
+        auto scores = (nearest->forward(K1h, mkpts, _H1, _W1) * bilinear->forward(H1, mkpts, _H1, _W1)).squeeze(-1);
         auto mask = torch::all(mkpts == 0, -1);
         scores.masked_fill_(mask, -1);
 
@@ -239,11 +241,10 @@ namespace ORB_SLAM3
         scores = scores.gather(-1, idxs).index({torch::indexing::Slice(), torch::indexing::Slice(0, top_k)});
 
         // Interpolate descriptors at kpts positions
-        torch::Tensor feats = interpolator.forward(M1, mkpts, _H1, _W1);
+        torch::Tensor feats = bilinear->forward(M1, mkpts, _H1, _W1);
 
         // L2-Normalize
         feats = torch::nn::functional::normalize(feats, torch::nn::functional::NormalizeFuncOptions().dim(-1));
-
         auto min_val = feats.min();
         auto max_val = feats.max();
 
@@ -263,8 +264,11 @@ namespace ORB_SLAM3
         return result;
     }   
 
-    std::tuple<torch::Tensor, torch::Tensor> XFDetector::match(torch::Tensor feats1, torch::Tensor feats2, float min_cossim)
+    std::tuple<torch::Tensor, torch::Tensor> XFDetector::match(torch::Tensor& feats1, torch::Tensor& feats2, float _min_cossim)
     {   
+        // set the min_cossim
+        min_cossim = _min_cossim;
+
         // compute cossine similarity between feats1 and feats2
         torch::Tensor cossim = torch::matmul(feats1, feats2.t());
         torch::Tensor cossim_t = torch::matmul(feats2, feats1.t());
@@ -294,16 +298,16 @@ namespace ORB_SLAM3
         return std::make_tuple(idx0, idx1);
     }
 
-    std::pair<cv::Mat, cv::Mat> XFDetector::match_xfeat(cv::Mat& img1, cv::Mat& img2, int top_k, float min_cossim)
+    std::pair<cv::Mat, cv::Mat> XFDetector::match_xfeat(cv::Mat& img1, cv::Mat& img2)
     {   
         torch::Tensor tensor_img1 = parseInput(img1);
         torch::Tensor tensor_img2 = parseInput(img2);
 
-        auto out1 = detectAndCompute(tensor_img1, top_k, /*use_cuda*/true)[0]; // no batches
-        auto out2 = detectAndCompute(tensor_img2, top_k, /*use_cuda*/true)[0];
+        auto out1 = detectAndCompute(tensor_img1)[0]; // no batches
+        auto out2 = detectAndCompute(tensor_img2)[0];
 
         torch::Tensor idxs0, idxs1;
-        std::tie(idxs0, idxs1) = match(out1["descriptors"], out2["descriptors"], min_cossim);
+        std::tie(idxs0, idxs1) = match(out1["descriptors"], out2["descriptors"], -1.0);
 
         torch::Tensor mkpts_0 = out1["keypoints"].index({idxs0});
         torch::Tensor mkpts_1 = out2["keypoints"].index({idxs1});
@@ -311,57 +315,6 @@ namespace ORB_SLAM3
         cv::Mat mkpts_1_cv = tensorToMat(mkpts_1);
 
         return std::make_pair(mkpts_0_cv, mkpts_1_cv);
-    }
-
-    void XFDetector::warp_corners_and_draw_matches(cv::Mat& ref_points, cv::Mat& dst_points, cv::Mat& img1, cv::Mat& img2)
-    {      
-        // Check if there are enough points to find a homography
-        if (ref_points.rows < 4 || dst_points.rows < 4) {
-            std::cerr << "Not enough points to compute homography" << std::endl;
-            return;
-        }
-
-        cv::Mat mask;
-        cv::Mat H = cv::findHomography(ref_points, dst_points, cv::USAC_MAGSAC, 10.0, mask, 1000, 0.994);
-        if (H.empty()) {
-            std::cerr << "Homography matrix is empty" << std::endl;
-            return;
-        }
-        mask = mask.reshape(1);
-
-        float h = img1.rows;
-        float w = img1.cols;
-        std::vector<cv::Point2f> corners_img1 = {cv::Point2f(    0,     0), 
-                                                 cv::Point2f(w - 1,     0), 
-                                                 cv::Point2f(w - 1, h - 1), 
-                                                 cv::Point2f(    0, h - 1)};
-        std::vector<cv::Point2f> warped_corners;
-        cv::perspectiveTransform(corners_img1, warped_corners, H);
-
-        cv::Mat img2_with_corners = img2.clone();
-        for (size_t i = 0; i < warped_corners.size(); ++i) {
-            cv::line(img2_with_corners, warped_corners[i], warped_corners[(i+1) % warped_corners.size()], cv::Scalar(0, 255, 0), 4);
-        }
-
-        // prepare keypoints and matches for drawMatches function
-        std::vector<cv::KeyPoint> keypoints1, keypoints2;
-        std::vector<cv::DMatch> matches;
-        for (int i = 0; i < mask.rows; ++i) {
-            keypoints1.emplace_back(ref_points.at<cv::Point2f>(i, 0), 5);
-            keypoints2.emplace_back(dst_points.at<cv::Point2f>(i, 0), 5);
-            if (mask.at<uchar>(i, 0))
-                matches.emplace_back(i, i, 0);
-        }
-        
-        // Draw inlier matches
-        cv::Mat img_matches;
-        if (!keypoints1.empty() && !keypoints2.empty() && !matches.empty()) {
-            cv::drawMatches(img1, keypoints1, img2_with_corners, keypoints2, matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1), std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
-            cv::imshow("Matches", img_matches);
-            cv::waitKey(0); // Wait for a key press
-        } else {
-            std::cerr << "Keypoints or matches are empty, cannot draw matches" << std::endl;
-        }
     }
 
     torch::Tensor XFDetector::parseInput(cv::Mat &img)
@@ -385,12 +338,8 @@ namespace ORB_SLAM3
         throw std::invalid_argument("Unsupported number of channels in the input image.");  
     }
 
-    std::tuple<torch::Tensor, double, double> XFDetector::preprocessTensor(torch::Tensor x)
+    std::tuple<torch::Tensor, double, double> XFDetector::preprocessTensor(torch::Tensor& x)
     {
-        /* 
-            Guarentees that image is divisible by 32 to avoid aliasing artifacts.
-        */
-
         // ensure the tensor has the correct type
         x = x.to(torch::kFloat);
 
@@ -406,12 +355,12 @@ namespace ORB_SLAM3
 
         std::vector<int64_t> size_array = {_H, _W};
         x = torch::nn::functional::interpolate(x, torch::nn::functional::InterpolateFuncOptions().size(size_array)
-                                                                                             .mode(torch::kBilinear)
-                                                                                          .align_corners(false));
+                                                                                                 .mode(torch::kBilinear)
+                                                                                                 .align_corners(false));
         return std::make_tuple(x, rh, rw);
     }
 
-    torch::Tensor XFDetector::getKptsHeatmap(torch::Tensor kpts, float softmax_temp)
+    torch::Tensor XFDetector::getKptsHeatmap(torch::Tensor& kpts, float softmax_temp)
     {   
         torch::Tensor scores = torch::nn::functional::softmax(kpts * softmax_temp, torch::nn::functional::SoftmaxFuncOptions(1));
         scores = scores.index({torch::indexing::Slice(), torch::indexing::Slice(0, 64), torch::indexing::Slice(), torch::indexing::Slice()});
@@ -426,8 +375,8 @@ namespace ORB_SLAM3
         return heatmap;
     }
 
-    torch::Tensor XFDetector::NMS(torch::Tensor x, float threshold, int kernel_size)
-    {
+    torch::Tensor XFDetector::NMS(torch::Tensor& x, float threshold, int kernel_size)
+    {   
         int B = x.size(0);
         int H = x.size(2);
         int W = x.size(3);
@@ -459,13 +408,23 @@ namespace ORB_SLAM3
         return pos_tensor;
     }
 
-    cv::Mat XFDetector::tensorToMat(const torch::Tensor &tensor)
-    {
+    cv::Mat XFDetector::tensorToMat(const torch::Tensor& tensor)
+    {   
         // ensure tesnor is on CPU and convert to float
         torch::Tensor cpu_tensor = tensor.to(torch::kCPU).to(torch::kFloat);
         cv::Mat mat(cpu_tensor.size(0), 2, CV_32F);
         std::memcpy(mat.data, cpu_tensor.data_ptr<float>(), cpu_tensor.numel() * sizeof(float));
         return mat;
+    }
+
+    std::string XFDetector::getWeightsPath(std::string weights)
+    {
+        std::filesystem::path current_file = __FILE__;
+        std::filesystem::path parent_dir = current_file.parent_path();
+        std::filesystem::path full_path = parent_dir / ".." / weights;
+        full_path = std::filesystem::absolute(full_path);
+
+        return static_cast<std::string>(full_path);   
     }
 
     //////////////////////////////// InterpolateSparse2d /////////////////////////////////
@@ -497,7 +456,8 @@ namespace ORB_SLAM3
         }   
         else
         {
-            x = torch::nn::functional::grid_sample(x, grid, torch::nn::functional::GridSampleFuncOptions().mode(torch::kBilinear).align_corners(align_corners));
+            std::cerr << "Choose either 'bilinear' or 'nearest'." << std::endl;
+            exit(EXIT_FAILURE);
         }
 
         //reshape output to [B, N, C]

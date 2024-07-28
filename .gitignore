@@ -68,3 +68,7 @@ thirdparty/pytorch/
 
 # ignore Pangolin folder
 thirdparty/Pangolin/
+
+################## Bash #####################
+build.sh
+run.sh
