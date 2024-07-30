@@ -1,5 +1,6 @@
 add_library(xfeat
     XFeat.cc
+    XFextractor.cc
 )
 
 set_property(TARGET xfeat PROPERTY CXX_STANDARD 17)

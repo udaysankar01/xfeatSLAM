@@ -62,30 +62,6 @@ namespace ORB_SLAM3
         bool align_corners;
     };
 
-    class XFDetector
-    {
-    public:
-        XFDetector(int _top_k=4096, float _detection_threshold=0.05, bool use_cuda=true);
-        void detect(cv::Mat &img);
-        void getKeyPoints(float threshold, int iniX, int maxX, int iniY, int maxY, std::vector<cv::KeyPoint>& _keypoints);
-        void computeDescriptors(const std::vector<cv::KeyPoint> &keypoints, cv::Mat &descriptors);
-        
-    private:
-        std::string getWeightsPath(std::string weights);
-        void parseInput(cv::Mat& img, torch::Tensor& tensor);
-        std::tuple<torch::Tensor, double, double> preprocessTensor(torch::Tensor& x);
-        torch::Tensor getKptsHeatmap(torch::Tensor& kpts, float softmax_temp=1.0);
-        torch::Tensor NMS(torch::Tensor& x, int kernel_size = 5);
-
-        int top_k;
-        float detection_threshold;
-        torch::DeviceType device_type;
-        std::shared_ptr<XFeatModel> model;
-        std::shared_ptr<InterpolateSparse2d> bilinear, nearest;
-        std::vector<cv::KeyPoint> keypoints;
-        cv::Mat descriptors;
-    };
-
 }  // namepsace ORB_SLAM3
 
 
