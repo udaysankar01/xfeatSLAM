@@ -94,58 +94,6 @@ namespace ORB_SLAM3
         // load the interpolators
         bilinear = std::make_shared<InterpolateSparse2d>("bilinear");     
         nearest  = std::make_shared<InterpolateSparse2d>("nearest"); 
-        
-        // mvScaleFactor.resize(nlevels);
-        // mvLevelSigma2.resize(nlevels);
-        // mvScaleFactor[0]=1.0f;
-        // mvLevelSigma2[0]=1.0f;
-        // for(int i=1; i<nlevels; i++)
-        // {
-        //     mvScaleFactor[i]=mvScaleFactor[i-1]*scaleFactor;
-        //     mvLevelSigma2[i]=mvScaleFactor[i]*mvScaleFactor[i];
-        // }
-
-        // mvInvScaleFactor.resize(nlevels);
-        // mvInvLevelSigma2.resize(nlevels);
-        // for(int i=0; i<nlevels; i++)
-        // {
-        //     mvInvScaleFactor[i]=1.0f/mvScaleFactor[i];
-        //     mvInvLevelSigma2[i]=1.0f/mvLevelSigma2[i];
-        // }
-
-        // mvImagePyramid.resize(nlevels);
-
-        // mnFeaturesPerLevel.resize(nlevels);
-        // float factor = 1.0f / scaleFactor;
-        // float nDesiredFeaturesPerScale = nfeatures*(1 - factor)/(1 - (float)pow((double)factor, (double)nlevels));
-
-        // int sumFeatures = 0;
-        // for( int level = 0; level < nlevels-1; level++ )
-        // {
-        //     mnFeaturesPerLevel[level] = cvRound(nDesiredFeaturesPerScale);
-        //     sumFeatures += mnFeaturesPerLevel[level];
-        //     nDesiredFeaturesPerScale *= factor;
-        // }
-        // mnFeaturesPerLevel[nlevels-1] = std::max(nfeatures - sumFeatures, 0);
-
-        // //This is for orientation
-        // // pre-compute the end of a row in a circular patch
-        // umax.resize(HALF_PATCH_SIZE + 1);
-
-        // int v, v0, vmax = cvFloor(HALF_PATCH_SIZE * sqrt(2.f) / 2 + 1);
-        // int vmin = cvCeil(HALF_PATCH_SIZE * sqrt(2.f) / 2);
-        // const double hp2 = HALF_PATCH_SIZE*HALF_PATCH_SIZE;
-        // for (v = 0; v <= vmax; ++v)
-        //     umax[v] = cvRound(sqrt(hp2 - v * v));
-
-        // // Make sure we are symmetric
-        // for (v = HALF_PATCH_SIZE, v0 = 0; v >= vmin; --v)
-        // {
-        //     while (umax[v0] == umax[v0 + 1])
-        //         ++v0;
-        //     umax[v] = v0;
-        //     ++v0;
-        // }
     }
 
     std::string XFextractor::getModelWeightsPath(std::string weights)
@@ -307,95 +255,77 @@ namespace ORB_SLAM3
         torch::Tensor scaling_factors = torch::tensor({rw1, rh1}, mkpts.options()).view({1, 1, -1});
         mkpts = mkpts * scaling_factors;
 
-        _keypoints.clear();
-        Mat descriptors;
+        // Prepare keypoints and descriptors
+        // _keypoints.clear();
+        // _keypoints.reserve(nfeatures);  // Reserve space for keypoints
+        _keypoints = vector<cv::KeyPoint>(nfeatures);
+        Mat desc_mat(cv::Size(64, nfeatures), CV_32F, cv::Scalar(0));  // Initialize descriptor matrix
 
-        auto valid = scores > 0;
-        auto valid_keypoints = mkpts.index({valid});
-        auto valid_scores = scores.index({valid});
-        auto valid_descriptors = feats.index({valid}).to(torch::kCPU);
+        auto valid = scores[0] > 0;
+        auto valid_keypoints = mkpts[0].index({valid});
+        auto valid_scores = scores[0].index({valid});
+        auto valid_descriptors = feats[0].index({valid}).to(torch::kCPU);
 
-        for (int i = 0; i < valid_keypoints.size(0); i++) {
+        // testing
+        int monoIndex = 0, stereoIndex = nfeatures - 1;
+        Mat desc = cv::Mat(nfeatures, 64, CV_32F);
+        for (int i = 0; i < valid_keypoints.size(0); i++) 
+        {
             float x = valid_keypoints[i][0].item<float>();
             float y = valid_keypoints[i][1].item<float>();
             float score = valid_scores[i].item<float>();
-            _keypoints.emplace_back(x, y, 1, -1, score);
+            KeyPoint keypoint(x, y, 1, -1, score);
+
+            cv::Mat desc_row(cv::Size(64, 1), CV_32F);       
+            std::memcpy(desc_row.data, valid_descriptors[i].data_ptr(), 64 * sizeof(float));     
+
+            if (x >= vLappingArea[0] && x <= vLappingArea[1])
+            {
+                _keypoints.at(stereoIndex) = keypoint;
+                desc_row.copyTo(desc_mat.row(stereoIndex));
+                stereoIndex--;
+            }
+            else
+            {
+                _keypoints.at(monoIndex) = keypoint;
+                desc_row.copyTo(desc_mat.row(monoIndex));
+                monoIndex++;
+            }            
         }
 
         int num_keypoints = valid_descriptors.size(0);
-        if (num_keypoints > 0) {
-            cv::Mat desc_mat(cv::Size(64, num_keypoints), CV_32F);
-            std::memcpy(desc_mat.data, valid_descriptors.data_ptr(), num_keypoints * 64 * sizeof(float));
-            desc_mat.copyTo(_descriptors);
-        } else {
+        
+        if (num_keypoints > 0) 
+        {   
+            desc_mat.rowRange(cv::Range(0, _keypoints.size())).copyTo(_descriptors);
+        } 
+        else 
+        {
             _descriptors.release();
         }
-        return 0;
 
-
-        // ////////////////////////////////////////////////////////
-        // // Pre-compute the scale pyramid
-        // ComputePyramid(image);
-        // vector < vector<KeyPoint> > allKeypoints;
-        // ComputeKeyPointsOctTree(allKeypoints, descriptors);
-        // std::cout << "ComputeKeyPointsOctTree complete!!!!" << std::endl;
-        // int nkeypoints = 0;
-        // for (int level = 0; level < nlevels; ++level)
-        //     nkeypoints += (int)allKeypoints[level].size();
-        // if( nkeypoints == 0 )
+        return monoIndex;
+        
+        // // NO FISHEYE STEREO VERSION
+        // for (int i = 0; i < valid_keypoints.size(0); i++) 
+        // {
+        //     float x = valid_keypoints[i][0].item<float>();
+        //     float y = valid_keypoints[i][1].item<float>();
+        //     float score = valid_scores[i].item<float>();
+        //     _keypoints.emplace_back(x, y, 1, -1, score);
+        // }
+        // int num_keypoints = valid_descriptors.size(0);
+        // if (num_keypoints > 0) 
+        // {   
+        //     cv::Mat desc_mat(cv::Size(num_keypoints, 64), CV_32F);
+        //     std::memcpy(desc_mat.data, valid_descriptors.data_ptr(), num_keypoints * 64 * sizeof(float));
+        //     desc_mat.copyTo(_descriptors);
+        // } 
+        // else 
+        // {
         //     _descriptors.release();
-        // else
-        // {
-        //     _descriptors.create(nkeypoints, 32, CV_8U);
-        //     descriptors = _descriptors.getMat();
         // }
-        // //_keypoints.clear();
-        // //_keypoints.reserve(nkeypoints);
-        // _keypoints = vector<cv::KeyPoint>(nkeypoints);
-        // int offset = 0;
-        // //Modified for speeding up stereo fisheye matching
-        // int monoIndex = 0, stereoIndex = nkeypoints-1;
-        // for (int level = 0; level < nlevels; ++level)
-        // {
-        //     vector<KeyPoint>& keypoints = allKeypoints[level];
-        //     int nkeypointsLevel = (int)keypoints.size();
-        //     if(nkeypointsLevel==0)
-        //         continue;
-        //     // preprocess the resized image
-        //     Mat workingMat = mvImagePyramid[level].clone();
-        //     GaussianBlur(workingMat, workingMat, Size(7, 7), 2, 2, BORDER_REFLECT_101);
-        //     // Compute the descriptors
-        //     //Mat desc = descriptors.rowRange(offset, offset + nkeypointsLevel);
-        //     Mat desc = cv::Mat(nkeypointsLevel, 32, CV_8U);
-        //     computeDescriptors(workingMat, keypoints, desc, pattern);
-        //     offset += nkeypointsLevel;
-        //     float scale = mvScaleFactor[level]; //getScale(level, firstLevel, scaleFactor);
-        //     int i = 0;
-        //     for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
-        //                  keypointEnd = keypoints.end(); keypoint != keypointEnd; ++keypoint){
-        //         // Scale keypoint coordinates
-        //         if (level != 0){
-        //             keypoint->pt *= scale;
-        //         }
-
-        // TODO: Stereo vLappingArea 
-        //         // overlapping area for stereo ----------------
-        //         if(keypoint->pt.x >= vLappingArea[0] && keypoint->pt.x <= vLappingArea[1]){
-        //             _keypoints.at(stereoIndex) = (*keypoint);
-        //             desc.row(i).copyTo(descriptors.row(stereoIndex));
-        //             stereoIndex--;
-        //         }
-        //         else{
-        //             _keypoints.at(monoIndex) = (*keypoint);
-        //             desc.row(i).copyTo(descriptors.row(monoIndex));
-        //             monoIndex++;
-        //         }
-        //         i++;
-        //     }
-        // }
-        // //cout << "[XFextractor]: extracted " << _keypoints.size() << " KeyPoints" << endl;
-        // return monoIndex;
+        // return 0;
     }
-
 
 } //namespace ORB_SLAM
