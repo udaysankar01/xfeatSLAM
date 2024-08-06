@@ -167,8 +167,6 @@ namespace ORB_SLAM3
     torch::Tensor XFextractor::NMS(torch::Tensor& x, float threshold, int kernel_size)
     {   
         int B = x.size(0);
-        int H = x.size(2);
-        int W = x.size(3);
         int pad = kernel_size / 2;
 
         auto local_max = torch::nn::functional::max_pool2d(x, torch::nn::functional::MaxPool2dFuncOptions(kernel_size).stride(1)
@@ -213,7 +211,6 @@ namespace ORB_SLAM3
         float rh1, rw1;
         std::tie(x, rh1, rw1) = preprocessTensor(x);
 
-        auto   B = x.size(0);
         auto _H1 = x.size(2);
         auto _W1 = x.size(3);
 

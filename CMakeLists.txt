@@ -1,26 +1,47 @@
 cmake_minimum_required(VERSION 3.22.1)
 project(xfeatSLAM)
 
-# Build type:
-# - Set to RELEASE to benchmark the code
-# - Set to DEBUG to debug the code
-set(CMAKE_BUILD_TYPE Debug)
+IF(NOT CMAKE_BUILD_TYPE)
+    SET(CMAKE_BUILD_TYPE Release)
+ENDIF()
+
+MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
+
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
+
+# Check C++17 support
+include(CheckCXXCompilerFlag)
+CHECK_CXX_COMPILER_FLAG("-std=c++17" COMPILER_SUPPORTS_CXX17)
+
+if(COMPILER_SUPPORTS_CXX17)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+    add_definitions(-DCOMPILEDWITHC17)
+    message(STATUS "Using flag -std=c++17.")
+else()
+    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++17 support. Please use a different C++ compiler.")
+endif()
+
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
 # enable folder organization in IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # for libtorch
 set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/pytorch/torch")
+find_package(Torch REQUIRED)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+message("-- Torch Version: " ${Torch_VERSION})
 
 # find libraries
-find_package(Torch REQUIRED)
-find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
+message("-- OpenCV Version: " ${OpenCV_VERSION})
+find_package(Eigen3 REQUIRED)
 find_package(Pangolin REQUIRED)
 
-# libtorch config
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-
+# find_package(realsense2)
 include_directories(
     ${EIGEN_INCLUDE_DIR}
     ${OpenCV_INCLUDE_DIR}
@@ -28,19 +49,29 @@ include_directories(
 
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/thirdparty/
-
-    # ${PROJECT_SOURCE_DIR}/thirdparty/g2o/
-    # ${PROJECT_SOURCE_DIR}/thirdparty/DBoW3/
+    ${PROJECT_SOURCE_DIR}/thirdparty/g2o/
+    ${PROJECT_SOURCE_DIR}/thirdparty/DBoW2/
+    ${PROJECT_SOURCE_DIR}/thirdparty/Sophus/
 )
 
-set(THIRD_PARTY_LIBS
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
+
+add_library(${PROJECT_NAME} SHARED
+    src/XFeat.cc
+    src/XFextractor.cc
+    src/ORBextractor.cc
+    include/XFeat.h
+    include/XFextractor.h
+    include/ORBextractor.h
+)
+
+target_link_libraries(${PROJECT_NAME}
     ${OpenCV_LIBS}
     ${Pangolin_LIBRARIES}
     ${TORCH_LIBRARIES}
 
-    # ${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib/libg2o${CMAKE_SHARED_LIBRARY_SUFFIX}
-    # ${PROJECT_SOURCE_DIR}/thirdparty/DBoW3/build/src/libDBoW3${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib/libg2o${CMAKE_SHARED_LIBRARY_SUFFIX}
+    ${PROJECT_SOURCE_DIR}/thirdparty/DBoW2/lib/libDBoW2${CMAKE_SHARED_LIBRARY_SUFFIX}
 )
 
-add_subdirectory(src)
 add_subdirectory(examples)

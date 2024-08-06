@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 {
     if (argc != 3)
     {
-        cerr << "Usage: ./test_orb path_to_left_image path_to_right_image" << endl;
+        cerr << "Usage: ./test_stereo path_to_left_image path_to_right_image" << endl;
         return -1;
     }
 
@@ -32,7 +32,7 @@ int main(int argc, char** argv)
     int iniThFAST = 20;
     int minThFAST = 7;
 
-    ORBextractor orbExtractor(nFeatures, scaleFactor, nLevels, iniThFAST, minThFAST);
+    ORBextractor ORBextractor(nFeatures, scaleFactor, nLevels, iniThFAST, minThFAST);
 
     // Define vLapping area for stereo
     std::vector<int> vLappingArea = {imLeft.cols / 4, 3 * imLeft.cols / 4};
@@ -40,26 +40,26 @@ int main(int argc, char** argv)
     // Extract keypoints and descriptors for left image
     vector<KeyPoint> keypointsLeft;
     Mat descriptorsLeft;
-    orbExtractor(imLeft, Mat(), keypointsLeft, descriptorsLeft, vLappingArea);
+    int monoIndexLeft = ORBextractor(imLeft, Mat(), keypointsLeft, descriptorsLeft, vLappingArea);
 
     // Extract keypoints and descriptors for right image
     vector<KeyPoint> keypointsRight;
     Mat descriptorsRight;
-    orbExtractor(imRight, Mat(), keypointsRight, descriptorsRight, vLappingArea);
+    int monoIndexRight = ORBextractor(imRight, Mat(), keypointsRight, descriptorsRight, vLappingArea);
 
     // Filter keypoints to keep only those inside the overlapping area
-    auto filterKeypoints = [&](vector<KeyPoint>& keypoints) {
+    auto filterKeypoints = [&](vector<KeyPoint>& keypoints, int monoIndex) {
         vector<KeyPoint> filteredKeypoints;
-        for (const auto& kp : keypoints) {
-            if (kp.pt.x >= vLappingArea[0] && kp.pt.x <= vLappingArea[1]) {
-                filteredKeypoints.push_back(kp);
+        for (size_t i = monoIndex; i < keypoints.size(); ++i) {
+            if (keypoints[i].pt.x >= vLappingArea[0] && keypoints[i].pt.x <= vLappingArea[1]) {
+                filteredKeypoints.push_back(keypoints[i]);
             }
         }
         return filteredKeypoints;
     };
 
-    vector<KeyPoint> filteredKeypointsLeft = filterKeypoints(keypointsLeft);
-    vector<KeyPoint> filteredKeypointsRight = filterKeypoints(keypointsRight);
+    vector<KeyPoint> filteredKeypointsLeft = filterKeypoints(keypointsLeft, monoIndexLeft);
+    vector<KeyPoint> filteredKeypointsRight = filterKeypoints(keypointsRight, monoIndexRight);
 
     // Draw keypoints for left and right images within the overlapping area
     Mat imLeftKeypoints, imRightKeypoints;
@@ -74,7 +74,7 @@ int main(int argc, char** argv)
     imRightKeypoints.copyTo(right);
 
     // Display the combined image
-    imshow("ORB Keypoints", imCombined);
+    imshow("Stereo Keypoints", imCombined);
     waitKey(0);
 
     // Print keypoints and descriptor information
@@ -111,3 +111,4 @@ int main(int argc, char** argv)
 
     return 0;
 }
+

@@ -50,7 +50,7 @@ int main(int argc, char** argv)
     // Filter keypoints to keep only those inside the overlapping area
     auto filterKeypoints = [&](vector<KeyPoint>& keypoints, int monoIndex) {
         vector<KeyPoint> filteredKeypoints;
-        for (int i = monoIndex; i < keypoints.size(); ++i) {
+        for (size_t i = monoIndex; i < keypoints.size(); ++i) {
             if (keypoints[i].pt.x >= vLappingArea[0] && keypoints[i].pt.x <= vLappingArea[1]) {
                 filteredKeypoints.push_back(keypoints[i]);
             }
