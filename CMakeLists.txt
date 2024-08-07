@@ -47,7 +47,10 @@ include_directories(
     ${OpenCV_INCLUDE_DIR}
     ${Pangolin_INCLUDE_DIRS}
 
+    ${PROJECT_SOURCE_DIR}
     ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/CameraModels
+
     ${PROJECT_SOURCE_DIR}/thirdparty/
     ${PROJECT_SOURCE_DIR}/thirdparty/g2o/
     ${PROJECT_SOURCE_DIR}/thirdparty/DBoW2/
@@ -57,12 +60,69 @@ include_directories(
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 add_library(${PROJECT_NAME} SHARED
+    src/System.cc
+    src/Tracking.cc
+    src/LocalMapping.cc
+    src/LoopClosing.cc
+    src/ORBextractor.cc
+    src/ORBmatcher.cc
+    src/FrameDrawer.cc
+    src/Converter.cc
+    src/MapPoint.cc
+    src/KeyFrame.cc
+    src/Atlas.cc
+    src/Map.cc
+    src/MapDrawer.cc
+    src/Optimizer.cc
+    src/Frame.cc
+    src/KeyFrameDatabase.cc
+    src/Sim3Solver.cc
+    src/Viewer.cc
+    src/ImuTypes.cc
+    src/G2oTypes.cc
+    src/CameraModels/Pinhole.cpp
+    src/CameraModels/KannalaBrandt8.cpp
+    src/OptimizableTypes.cpp
+    src/MLPnPsolver.cpp
+    src/GeometricTools.cc
+    src/TwoViewReconstruction.cc
+    src/Config.cc
+    src/Settings.cc
     src/XFeat.cc
     src/XFextractor.cc
-    src/ORBextractor.cc
+
+    include/System.h
+    include/Tracking.h
+    include/LocalMapping.h
+    include/LoopClosing.h
+    include/ORBextractor.h
+    include/ORBmatcher.h
+    include/FrameDrawer.h
+    include/Converter.h
+    include/MapPoint.h
+    include/KeyFrame.h
+    include/Atlas.h
+    include/Map.h
+    include/MapDrawer.h
+    include/Optimizer.h
+    include/Frame.h
+    include/KeyFrameDatabase.h
+    include/Sim3Solver.h
+    include/Viewer.h
+    include/ImuTypes.h
+    include/G2oTypes.h
+    include/CameraModels/GeometricCamera.h
+    include/CameraModels/Pinhole.h
+    include/CameraModels/KannalaBrandt8.h
+    include/OptimizableTypes.h
+    include/MLPnPsolver.h
+    include/GeometricTools.h
+    include/TwoViewReconstruction.h
+    include/SerializationUtils.h
+    include/Config.h
+    include/Settings.h
     include/XFeat.h
     include/XFextractor.h
-    include/ORBextractor.h
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -72,6 +132,8 @@ target_link_libraries(${PROJECT_NAME}
 
     ${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib/libg2o${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${PROJECT_SOURCE_DIR}/thirdparty/DBoW2/lib/libDBoW2${CMAKE_SHARED_LIBRARY_SUFFIX}
+    -lboost_serialization
+    -lcrypto
 )
 
 add_subdirectory(examples)
