@@ -30,6 +30,9 @@
 #include "ImuTypes.h"
 #include "ORBVocabulary.h"
 
+#include "ORBextractor.h"
+#include "XFextractor.h"
+
 #include "Converter.h"
 #include "Settings.h"
 
@@ -49,6 +52,7 @@ class KeyFrame;
 class ConstraintPoseImu;
 class GeometricCamera;
 class ORBextractor;
+class XFextractor;
 
 class Frame
 {
@@ -64,6 +68,9 @@ public:
     // Constructor for RGB-D cameras.
     Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera,Frame* pPrevF = static_cast<Frame*>(NULL), const IMU::Calib &ImuCalib = IMU::Calib());
 
+    // Constructor for RGB-D cameras (XFextractor).
+    Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, XFextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth, GeometricCamera* pCamera,Frame* pPrevF = static_cast<Frame*>(NULL), const IMU::Calib &ImuCalib = IMU::Calib());
+
     // Constructor for Monocular cameras.
     Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, GeometricCamera* pCamera, cv::Mat &distCoef, const float &bf, const float &thDepth, Frame* pPrevF = static_cast<Frame*>(NULL), const IMU::Calib &ImuCalib = IMU::Calib());
 
@@ -72,6 +79,9 @@ public:
 
     // Extract ORB on the image. 0 for left image and 1 for right image.
     void ExtractORB(int flag, const cv::Mat &im, const int x0, const int x1);
+    
+    // Extract XFeat on the image.
+    void ExtractXF(int flag, const cv::Mat &im, const int x0, const int x1);
 
     // Compute Bag of Words representation.
     void ComputeBoW();
@@ -192,8 +202,11 @@ public:
     // Vocabulary used for relocalization.
     ORBVocabulary* mpORBvocabulary;
 
-    // Feature extractor. The right is used only in the stereo case.
+    // ORB Feature extractor. The right is used only in the stereo case.
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
+
+    // Accelerated Feature (XFeat) extractor. 
+    XFextractor* mpXFextractor;
 
     // Frame timestamp.
     double mTimeStamp;

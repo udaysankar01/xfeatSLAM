@@ -42,6 +42,30 @@ public:
                     std::vector<cv::KeyPoint>& _keypoints,
                     cv::OutputArray _descriptors, std::vector<int> &vLappingArea);
 
+    int inline GetLevels(){
+        return nlevels;}
+
+    float inline GetScaleFactor(){
+        return scaleFactor;}
+
+    std::vector<float> inline GetScaleFactors(){
+        return mvScaleFactor;
+    }
+
+    std::vector<float> inline GetInverseScaleFactors(){
+        return mvInvScaleFactor;
+    }
+
+    std::vector<float> inline GetScaleSigmaSquares(){
+        return mvLevelSigma2;
+    }
+
+    std::vector<float> inline GetInverseScaleSigmaSquares(){
+        return mvInvLevelSigma2;
+    }
+
+    std::vector<cv::Mat> mvImagePyramid;
+
 protected:
     std::string getModelWeightsPath(std::string weights);
     torch::Tensor parseInput(cv::Mat& img);
@@ -54,6 +78,15 @@ protected:
     int nlevels;
     int iniThFAST;
     int minThFAST;
+
+    std::vector<int> mnFeaturesPerLevel;
+
+    std::vector<int> umax;
+
+    std::vector<float> mvScaleFactor;
+    std::vector<float> mvInvScaleFactor;    
+    std::vector<float> mvLevelSigma2;
+    std::vector<float> mvInvLevelSigma2;
 
     torch::DeviceType device_type;
     std::shared_ptr<XFeatModel> model;
