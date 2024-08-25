@@ -7,8 +7,10 @@ ENDIF()
 
 MESSAGE("Build type: " ${CMAKE_BUILD_TYPE})
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall   -O3")
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -w  -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w   -O3")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -march=native")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native")
 
@@ -136,4 +138,22 @@ target_link_libraries(${PROJECT_NAME}
     -lcrypto
 )
 
-add_subdirectory(examples)
+# ########## Build Examples ###########
+
+# RGB-D example
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/RGB-D)
+
+add_executable(rgbd_tum examples/RGB-D/rgbd_tum.cc)
+target_link_libraries(rgbd_tum ${PROJECT_NAME})
+
+# test examples
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/test)
+
+add_executable(test_extractor examples/test/test_extractor.cc)
+target_link_libraries(test_extractor ${PROJECT_NAME})
+
+add_executable(test_stereo_xf examples/test/test_stereo_xf.cc)
+target_link_libraries(test_stereo_xf ${PROJECT_NAME})
+
+add_executable(test_stereo_orb examples/test/test_stereo_orb.cc)
+target_link_libraries(test_stereo_orb ${PROJECT_NAME})
