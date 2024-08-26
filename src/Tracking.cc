@@ -2744,7 +2744,16 @@ bool Tracking::TrackReferenceKeyFrame()
     ORBmatcher matcher(0.7,true);
     vector<MapPoint*> vpMapPointMatches;
 
-    int nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
+
+    int nmatches;
+    if (std::getenv("USE_ORB") == nullptr)
+    {
+        nmatches = matcher.SearchByNN(mpReferenceKF, mCurrentFrame, vpMapPointMatches);
+    }
+    else
+    {   
+        nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
+    }
 
     if(nmatches<15)
     {
@@ -3427,7 +3436,15 @@ void Tracking::SearchLocalPoints()
         if(mState==LOST || mState==RECENTLY_LOST) // Lost for less than 1 second
             th=15; // 15
 
-        int matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
+        int matches;
+        if (std::getenv("USE_ORB") == nullptr)
+        {
+            matches = matcher.SearchByNN(mCurrentFrame,mvpLocalMapPoints);
+        }
+        else
+        {
+            matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
+        }     
     }
 }
 
@@ -3662,7 +3679,16 @@ bool Tracking::Relocalization()
             vbDiscarded[i] = true;
         else
         {
-            int nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            int nmatches;
+            if (std::getenv("USE_ORB") == nullptr)
+            {
+                nmatches = matcher.SearchByNN(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            }
+            else
+            {
+                nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            }
+
             if(nmatches<15)
             {
                 vbDiscarded[i] = true;

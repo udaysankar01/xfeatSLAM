@@ -220,6 +220,192 @@ namespace ORB_SLAM3
             return 4.0;
     }
 
+    int ORBmatcher::SearchByNN(Frame &F, const vector<MapPoint*> &vpMapPoints)
+    {
+        std::vector<cv::Mat> MPdescriptorAll;
+        std::vector<int> select_indice;
+        for(size_t iMP=0; iMP<vpMapPoints.size(); iMP++)
+        {
+            MapPoint* pMP = vpMapPoints[iMP];
+
+            if(!pMP)
+                continue;
+
+            if(!pMP->mbTrackInView)
+                continue;
+
+            if(pMP->isBad())
+                continue;
+
+            const cv::Mat MPdescriptor = pMP->GetDescriptor();
+            MPdescriptorAll.push_back(MPdescriptor);
+            select_indice.push_back(iMP);
+        }
+
+        cv::Mat MPdescriptors;
+        MPdescriptors.create(MPdescriptorAll.size(), 32, CV_8U);
+
+        for (int i=0; i<static_cast<int>(MPdescriptorAll.size()); i++)
+        {
+            for (int j=0; j<32; j++)
+            {
+                MPdescriptors.at<unsigned char>(i, j) = MPdescriptorAll[i].at<unsigned char>(j);
+            }
+        }
+
+        std::vector<cv::DMatch> matches;
+        match(MPdescriptors, F.mDescriptors, matches);
+
+        int nmatches =0;
+        for (int i = 0; i < static_cast<int>(matches.size()); ++i) {
+            int realIdxMap = select_indice[matches[i].queryIdx];
+            int bestIdxF  = matches[i].trainIdx;
+            
+            if(matches[i].distance > TH_HIGH)
+                continue;
+
+            if(F.mvpMapPoints[bestIdxF])
+                if(F.mvpMapPoints[bestIdxF]->Observations()>0)
+                    continue;
+
+            MapPoint* pMP = vpMapPoints[realIdxMap];
+            F.mvpMapPoints[bestIdxF] = pMP;
+            nmatches++;
+        }
+        return nmatches;
+    }
+
+    int ORBmatcher::SearchByNN(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches)
+    {
+        std::cout << "KeyFrame matching..." << std::endl;
+        const vector<MapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();
+        vpMapPointMatches = vector<MapPoint*>(F.N, static_cast<MapPoint*>(NULL));
+
+        float min_cossim = -1;
+        std::vector<cv::DMatch> matches;
+        match(pKF->mDescriptors, F.mDescriptors, matches);
+
+        int nmatches = 0;
+        for (size_t i = 0; i < matches.size(); ++i)
+        {
+            int realIdxKF = matches[i].queryIdx;
+            int bestIdxF = matches[i].trainIdx;
+
+            if (matches[i].distance > (1.0 - min_cossim))   ///////////////////////////////////////
+            // if (matches[i].distance > TH_HIGH)
+                continue;
+
+            MapPoint* pMP = vpMapPointsKF[realIdxKF];
+
+            if (!pMP)
+                continue;
+            
+            if (pMP->isBad())
+                continue;
+            
+            vpMapPointMatches[bestIdxF] = pMP;
+            nmatches++;
+        }
+        return nmatches;
+    }
+
+    int ORBmatcher::SearchByNN(Frame &CurrentFrame, const Frame &LastFrame)
+    {
+        std::cout << "Frame matching..." << std::endl;
+        float min_cossim = -1;
+        std::vector<cv::DMatch> matches;
+        match(LastFrame.mDescriptors, CurrentFrame.mDescriptors, matches);
+
+        int nmatches = 0;
+        for (size_t i = 0; i < matches.size(); ++i)
+        {
+            int realIdxF = matches[i].queryIdx;
+            int bestIdxF = matches[i].trainIdx;
+
+            if (matches[i].distance > (1.0f - min_cossim))      ////////////////////////////////////////////////
+                continue;
+            
+            MapPoint *pMP = LastFrame.mvpMapPoints[realIdxF];
+            if (!pMP || pMP->isBad())
+                continue;
+
+            if (!LastFrame.mvbOutlier[realIdxF])
+            {
+                CurrentFrame.mvpMapPoints[bestIdxF] = pMP;
+                nmatches++;
+            }
+        }
+        return nmatches;
+    }
+
+    void ORBmatcher::match(cv::Mat _frame1_desc, cv::Mat _frame2_desc, std::vector<cv::DMatch> &_matches)
+    {   
+        // convert descriptors to torch::Tensor
+        torch::Tensor feats1 = torch::from_blob(
+            _frame1_desc.data, {_frame1_desc.rows, _frame1_desc.cols}, torch::kByte);
+        torch::Tensor feats2 = torch::from_blob(
+            _frame2_desc.data, {_frame2_desc.rows, _frame2_desc.cols}, torch::kByte);
+
+        // move to GPU if available and set to float type
+        if (torch::cuda::is_available())
+        {
+            feats1 = feats1.to(torch::kCUDA);
+            feats2 = feats2.to(torch::kCUDA);
+        }
+        feats1 = feats1.to(torch::kFloat);
+        feats2 = feats2.to(torch::kFloat);
+
+        // normalize the descriptors
+        feats1 = torch::nn::functional::normalize(feats1, torch::nn::functional::NormalizeFuncOptions().dim(-1));
+        feats2 = torch::nn::functional::normalize(feats2, torch::nn::functional::NormalizeFuncOptions().dim(-1));
+
+        // compute cossine similarity between feats1 and feats2
+        float min_cossim = -1;
+        torch::Tensor cossim = torch::matmul(feats1, feats2.t());
+        torch::Tensor cossim_t = torch::matmul(feats2, feats1.t());
+
+        torch::Tensor match12, match21;
+        std::tie(std::ignore, match12) = cossim.max(1);
+        std::tie(std::ignore, match21) = cossim_t.max(1);
+
+        // index tensor
+        torch::Tensor idx0 = torch::arange(match12.size(0), match12.options());
+        torch::Tensor mutual = match21.index({match12}) == idx0;
+
+        torch::Tensor idx1;
+        if (min_cossim > 0)
+        {
+            std::tie(cossim, std::ignore) = cossim.max(1);
+            torch::Tensor good = cossim > min_cossim;
+            idx0 = idx0.index({mutual & good});
+            idx1 = match12.index({mutual & good});
+        }
+        else
+        {
+            idx0 = idx0.index({mutual});
+            idx1 = match12.index({mutual});
+        }
+
+        // Convert tensor indices to vectors of integers
+        idx0 = idx0.to(torch::kInt).to(torch::kCPU);
+        idx1 = idx1.to(torch::kInt).to(torch::kCPU);
+        std::vector<int> lastFrameIndices(idx0.data_ptr<int>(), idx0.data_ptr<int>() + (int)idx0.size(0));
+        std::vector<int> currentFrameIndices(idx1.data_ptr<int>(), idx1.data_ptr<int>() + (int)idx1.size(0));
+
+        _matches.clear();
+        for (size_t i = 0; i < lastFrameIndices.size(); ++i)
+        {
+            int idx1 = lastFrameIndices[i];
+            int idx2 = currentFrameIndices[i];
+            float cosine_distance = 1.0f - cossim[idx1][idx2].item<float>();
+            float distance = std::sqrt(2 * cosine_distance);
+
+            std::cout << "Match: (" << idx1 << ", " << idx2 << "), Distance: " << distance << std::endl;
+
+            _matches.emplace_back(cv::DMatch(idx1, idx2, distance));
+        }
+    }
+
     int ORBmatcher::SearchByBoW(KeyFrame* pKF,Frame &F, vector<MapPoint*> &vpMapPointMatches)
     {
         const vector<MapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();

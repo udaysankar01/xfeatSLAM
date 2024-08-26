@@ -71,7 +71,10 @@ namespace ORB_SLAM3
         // Search matches between MapPoints int a KeyFrame and XFeat in a Frame.
         int SearchByNN(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
         int SearchByNN(Frame &CurrentFrame, const Frame &LastFrame);
-        int SearchByNN(Frame &Frame, const vector<MapPoint*> &vpMapPoints);
+        int SearchByNN(Frame &F, const vector<MapPoint*> &vpMapPoints);
+
+        // For matching XFeat
+        void match(cv::Mat _frame1_desc, cv::Mat _frame2_desc, std::vector<cv::DMatch> &_matches);
 
         // Matching for the Map Initialization (only used in the monocular case)
         int SearchForInitialization(Frame &F1, Frame &F2, std::vector<cv::Point2f> &vbPrevMatched, std::vector<int> &vnMatches12, int windowSize=10);
