@@ -157,3 +157,6 @@ target_link_libraries(test_stereo_xf ${PROJECT_NAME})
 
 add_executable(test_stereo_orb examples/test/test_stereo_orb.cc)
 target_link_libraries(test_stereo_orb ${PROJECT_NAME})
+
+add_executable(test_matcher examples/test/test_matcher.cc)
+target_link_libraries(test_matcher ${PROJECT_NAME})

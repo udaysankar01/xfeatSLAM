@@ -64,10 +64,10 @@ build/
 *.vsix
 
 # ignore pytorch folder
-thirdparty/pytorch/
+Thirdparty/pytorch/
 
 # ignore Pangolin folder
-thirdparty/Pangolin/
+Thirdparty/Pangolin/
 
 ################## Bash #####################
 build.sh
