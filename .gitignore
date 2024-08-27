@@ -76,6 +76,8 @@ run.sh
 ################## Test #####################
 dataset-corridor4_512_16/
 rgbd_dataset_freiburg1_xyz/
+examples/test/test_matcher_orb
+examples/test/test_matcher_xf
 
 
 CMakeLists.txt.user
