@@ -64,10 +64,10 @@ build/
 *.vsix
 
 # ignore pytorch folder
-Thirdparty/pytorch/
+thirdparty/pytorch/
 
 # ignore Pangolin folder
-Thirdparty/Pangolin/
+thirdparty/Pangolin/
 
 ################## Bash #####################
 build.sh
@@ -132,11 +132,11 @@ KeyFrameTrajectory.txt
 CameraTrajectory.txt
 kf_*.txt
 f_*.txt
-Thirdparty/DBoW2/build/
-Thirdparty/DBoW2/lib/
-Thirdparty/g2o/build/
-Thirdparty/g2o/config.h
-Thirdparty/g2o/lib/
+thirdparty/DBoW2/build/
+thirdparty/DBoW2/lib/
+thirdparty/g2o/build/
+thirdparty/g2o/config.h
+thirdparty/g2o/lib/
 Vocabulary/ORBvoc.txt
 build/
 
