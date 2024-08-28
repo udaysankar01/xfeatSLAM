@@ -12,20 +12,21 @@ using namespace ORB_SLAM3;
 // Function to compute Euclidean distance between two descriptors
 float computeDescriptorDistance(const Mat& desc1, const Mat& desc2)
 {
-    float dist = 0.0;
-    for (int i = 0; i < desc1.cols; i++)
-    {
-        float diff = desc1.at<float>(0, i) - desc2.at<float>(0, i);
-        dist += diff * diff;
-    }
-    return std::sqrt(dist);
+    // float dist = 0.0;
+    // for (int i = 0; i < desc1.cols; i++)
+    // {
+    //     float diff = desc1.at<float>(0, i) - desc2.at<float>(0, i);
+    //     dist += diff * diff;
+    // }
+    // return std::sqrt(dist);
+    return norm(desc1, desc2, NORM_L2SQR);
 }
 
 int main(int argc, char** argv)
 {
-    if (argc != 3)
+    if (argc != 4)
     {
-        cerr << "Usage: ./test_stereo path_to_left_image path_to_right_image" << endl;
+        cerr << "Usage: ./test_matcher_xf path_to_left_image path_to_right_image threshold" << endl;
         return -1;
     }
 
@@ -38,6 +39,9 @@ int main(int argc, char** argv)
         cerr << "Cannot load images!" << endl;
         return -1;
     }
+
+    // Parse the threshold argument
+    float threshold = std::stof(argv[3]);
 
     // Initialize XFextractor
     int nFeatures = 1000;
@@ -73,15 +77,15 @@ int main(int argc, char** argv)
             // Compute distance between descriptors
             float dist = computeDescriptorDistance(descriptorsLeft.row(i), descriptorsRight.row(j));
 
-            // Check if this is the best match so far
-            if (dist < bestMatchDistance)
+            // Check if this is the best match so far and below the threshold
+            if (dist < bestMatchDistance && dist < threshold)
             {
                 bestMatchDistance = dist;
                 bestMatchIndex = j;
             }
         }
 
-        // Store the best match
+        // Store the best match if below the threshold
         if (bestMatchIndex >= 0)
         {
             matches.push_back(DMatch(i, bestMatchIndex, bestMatchDistance));
@@ -102,6 +106,7 @@ int main(int argc, char** argv)
     cout << "Descriptor Sizes:" << endl;
     cout << "Left Descriptors: " << descriptorsLeft.rows << " x " << descriptorsLeft.cols << endl;
     cout << "Right Descriptors: " << descriptorsRight.rows << " x " << descriptorsRight.cols << endl;
+    cout << "Number of Matches: " << matches.size() << endl;
 
     return 0;
 }

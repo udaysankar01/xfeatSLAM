@@ -2748,7 +2748,8 @@ bool Tracking::TrackReferenceKeyFrame()
     int nmatches;
     if (std::getenv("USE_ORB") == nullptr)
     {
-        nmatches = matcher.SearchByNN(mpReferenceKF, mCurrentFrame, vpMapPointMatches);
+        // nmatches = matcher.SearchByNN(mpReferenceKF, mCurrentFrame, vpMapPointMatches);
+        nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
     }
     else
     {   
@@ -3439,7 +3440,8 @@ void Tracking::SearchLocalPoints()
         int matches;
         if (std::getenv("USE_ORB") == nullptr)
         {
-            matches = matcher.SearchByNN(mCurrentFrame,mvpLocalMapPoints);
+            // matches = matcher.SearchByNN(mCurrentFrame,mvpLocalMapPoints);
+            matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
         }
         else
         {
@@ -3682,7 +3684,8 @@ bool Tracking::Relocalization()
             int nmatches;
             if (std::getenv("USE_ORB") == nullptr)
             {
-                nmatches = matcher.SearchByNN(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+                // nmatches = matcher.SearchByNN(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+                nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
             }
             else
             {
