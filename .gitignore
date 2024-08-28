@@ -70,8 +70,8 @@ thirdparty/pytorch/
 thirdparty/Pangolin/
 
 ################## Bash #####################
-build.sh
-run.sh
+# build.sh
+# run.sh
 
 ################## Test #####################
 dataset-corridor4_512_16/
