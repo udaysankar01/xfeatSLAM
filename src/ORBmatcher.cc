@@ -40,8 +40,6 @@ namespace ORB_SLAM3
     
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
     {
-        std::cout << "ORBmatcher TH_HIGH: " << TH_HIGH << std::endl;
-        std::cout << "ORBmatcher  TH_LOW: " << TH_LOW << std::endl;
     }
 
     int ORBmatcher::SearchByProjection(Frame &F, const vector<MapPoint*> &vpMapPoints, const float th, const bool bFarPoints, const float thFarPoints)

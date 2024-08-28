@@ -70,10 +70,13 @@ thirdparty/pytorch/
 thirdparty/Pangolin/
 
 ################## Bash #####################
-# build.sh
-# run.sh
+build.sh
+run.sh
 
 ################## Test #####################
+examples/test/test_extractor
+examples/test/test_stereo_orb
+examples/test/test_stereo_xf
 examples/test/test_matcher_orb
 examples/test/test_matcher_xf
 examples/Stereo-Inertial
@@ -81,6 +84,7 @@ examples/Stereo-Inertial
 dataset-corridor4_512_16/
 rgbd_dataset_freiburg1_xyz/
 rgbd_dataset_freiburg1_rpy/
+rgbd_dataset_freiburg2_xyz/
 
 CMakeLists.txt.user
 CMakeLists_modified.txt
