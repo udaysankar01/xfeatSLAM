@@ -32,8 +32,9 @@ LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # for libtorch
-# set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/pytorch/torch")
-set(CMAKE_PREFIX_PATH "/home/uday/projects/xfeat_cpp/thirdparty/pytorch/torch")
+set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/pytorch/torch")
+
+# set(CMAKE_PREFIX_PATH "/home/uday/projects/xfeat_cpp/thirdparty/pytorch/torch")
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 message("-- Torch Version: " ${Torch_VERSION})
@@ -133,8 +134,7 @@ target_link_libraries(${PROJECT_NAME}
     ${Pangolin_LIBRARIES}
     ${TORCH_LIBRARIES}
 
-    # ${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib/libg2o${CMAKE_SHARED_LIBRARY_SUFFIX}
-    /home/uday/projects/ORB_SLAM3/Thirdparty/g2o/lib/libg2o.so
+    ${PROJECT_SOURCE_DIR}/thirdparty/g2o/lib/libg2o${CMAKE_SHARED_LIBRARY_SUFFIX}
     ${PROJECT_SOURCE_DIR}/thirdparty/DBoW2/lib/libDBoW2${CMAKE_SHARED_LIBRARY_SUFFIX}
     -lboost_serialization
     -lcrypto

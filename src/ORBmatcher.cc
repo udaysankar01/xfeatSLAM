@@ -29,14 +29,19 @@
 
 using namespace std;
 
+const int TH_HIGH = atof(std::getenv("TH_HIGH"));
+const int TH_LOW = atof(std::getenv("TH_LOW"));
+
 namespace ORB_SLAM3
 {
-    const int ORBmatcher::TH_HIGH = 100;
-    const int ORBmatcher::TH_LOW = 50;
+    const int ORBmatcher::TH_HIGH = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_HIGH"))) : 100;
+    const int ORBmatcher::TH_LOW = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_LOW"))) : 50;
     const int ORBmatcher::HISTO_LENGTH = 30;
     
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
     {
+        std::cout << "ORBmatcher TH_HIGH: " << TH_HIGH << std::endl;
+        std::cout << "ORBmatcher  TH_LOW: " << TH_LOW << std::endl;
     }
 
     int ORBmatcher::SearchByProjection(Frame &F, const vector<MapPoint*> &vpMapPoints, const float th, const bool bFarPoints, const float thFarPoints)
@@ -2237,33 +2242,15 @@ namespace ORB_SLAM3
         }
     }
 
-
-// Bit set count operation from
-// http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
-    // int ORBmatcher::DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
-    // {
-    //     const int *pa = a.ptr<int32_t>();
-    //     const int *pb = b.ptr<int32_t>();
-
-    //     int dist=0;
-
-    //     for(int i=0; i<8; i++, pa++, pb++)
-    //     {
-    //         unsigned  int v = *pa ^ *pb;
-    //         v = v - ((v >> 1) & 0x55555555);
-    //         v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
-    //         dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
-    //     }
-
-    //     return dist;
-    // }
+    // Bit set count for ORB operation from
+    // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
     int ORBmatcher::DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
-    {   
+    {
         if (std::getenv("USE_ORB") == nullptr)
         {
             float normDist = cv::norm(a, b, cv::NORM_L2SQR);
-            std::cout << "Norm distance: " << normDist * 512 << std::endl;
             int scaledDist = static_cast<int>(normDist * 512);
+            // std::cout << "Distance: " << scaledDist << std::endl;
             return scaledDist;
         }
         else
@@ -2272,7 +2259,6 @@ namespace ORB_SLAM3
             const int *pb = b.ptr<int32_t>();
 
             int dist=0;
-
             for(int i=0; i<8; i++, pa++, pb++)
             {
                 unsigned  int v = *pa ^ *pb;
@@ -2280,8 +2266,6 @@ namespace ORB_SLAM3
                 v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
                 dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
             }
-
-            std::cout << "Distance: " << dist << std::endl;
             return dist;
         }
     }

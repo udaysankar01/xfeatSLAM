@@ -5,16 +5,17 @@ sudo apt-get update
 grep -v '^\s*#' dependencies.txt | grep -v '^\s*$' | cut -d'#' -f1 | xargs sudo apt-get install -y
 
 # setup libtorch
-cd Thirdparty
+cd thirdparty
 git clone https://github.com/pytorch/pytorch
 cd pytorch
 git submodule update --init --recursive
 git submodule sync
-python tools/build_libtorch.py
+# change MAX_JOBS to change number of threads 
+MAX_JOB=6 python tools/build_libtorch.py
 cd ../..
 
 # setup g2o
-cd Thirdparty/g2o
+cd thirdparty/g2o
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -22,7 +23,7 @@ make -j8
 cd ../../..
 
 # setup DBoW2
-cd Thirdparty/DBoW2
+cd thirdparty/DBoW2
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -30,7 +31,7 @@ make -j8
 cd ../../..
 
 # setup Sophus
-cd Thirdparty/Sophus
+cd thirdparty/Sophus
 mkdir -p build
 cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
@@ -39,7 +40,7 @@ cd ../../..
 
 
 # setup Pangolin
-cd Thirdparty
+cd thirdparty
 git clone https://github.com/stevenlovegrove/Pangolin
 cd Pangolin
 ./scripts/install_prerequisites.sh recommended

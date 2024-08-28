@@ -2746,15 +2746,16 @@ bool Tracking::TrackReferenceKeyFrame()
 
 
     int nmatches;
-    if (std::getenv("USE_ORB") == nullptr)
-    {
-        // nmatches = matcher.SearchByNN(mpReferenceKF, mCurrentFrame, vpMapPointMatches);
-        nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
-    }
-    else
-    {   
-        nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
-    }
+    nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
+
+    // if (std::getenv("USE_ORB") == nullptr)
+    // {
+    //     nmatches = matcher.SearchByNN(mpReferenceKF, mCurrentFrame, vpMapPointMatches);
+    // }
+    // else
+    // {   
+    //     nmatches = matcher.SearchByBoW(mpReferenceKF,mCurrentFrame,vpMapPointMatches);
+    // }
 
     if(nmatches<15)
     {
@@ -3438,15 +3439,16 @@ void Tracking::SearchLocalPoints()
             th=15; // 15
 
         int matches;
-        if (std::getenv("USE_ORB") == nullptr)
-        {
-            // matches = matcher.SearchByNN(mCurrentFrame,mvpLocalMapPoints);
-            matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
-        }
-        else
-        {
-            matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
-        }     
+        matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
+
+        // if (std::getenv("USE_ORB") == nullptr)
+        // {
+        //     matches = matcher.SearchByNN(mCurrentFrame,mvpLocalMapPoints);
+        // }
+        // else
+        // {
+        //     matches = matcher.SearchByProjection(mCurrentFrame, mvpLocalMapPoints, th, mpLocalMapper->mbFarPoints, mpLocalMapper->mThFarPoints);
+        // }     
     }
 }
 
@@ -3682,15 +3684,16 @@ bool Tracking::Relocalization()
         else
         {
             int nmatches;
-            if (std::getenv("USE_ORB") == nullptr)
-            {
-                // nmatches = matcher.SearchByNN(pKF,mCurrentFrame,vvpMapPointMatches[i]);
-                nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
-            }
-            else
-            {
-                nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
-            }
+            nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+
+            // if (std::getenv("USE_ORB") == nullptr)
+            // {
+            //     nmatches = matcher.SearchByNN(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            // }
+            // else
+            // {
+            //     nmatches = matcher.SearchByBoW(pKF,mCurrentFrame,vvpMapPointMatches[i]);
+            // }
 
             if(nmatches<15)
             {
