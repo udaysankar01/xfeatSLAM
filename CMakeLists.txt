@@ -148,6 +148,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/RGB-D)
 add_executable(rgbd_tum examples/RGB-D/rgbd_tum.cc)
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
 
+# Stereo Inertial example
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/Stereo-Inertial)
+
+add_executable(stereo_inertial_tum_vi examples/Stereo-Inertial/stereo_inertial_tum_vi.cc)
+target_link_libraries(stereo_inertial_tum_vi ${PROJECT_NAME})
+
 # test examples
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/test)
 

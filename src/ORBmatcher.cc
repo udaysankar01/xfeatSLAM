@@ -31,11 +31,10 @@ using namespace std;
 
 namespace ORB_SLAM3
 {
-
     const int ORBmatcher::TH_HIGH = 100;
     const int ORBmatcher::TH_LOW = 50;
     const int ORBmatcher::HISTO_LENGTH = 30;
-
+    
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
     {
     }
@@ -2262,16 +2261,9 @@ namespace ORB_SLAM3
     {   
         if (std::getenv("USE_ORB") == nullptr)
         {
-            // Calculate the squared L2 distance
             float normDist = cv::norm(a, b, cv::NORM_L2SQR);
-
-            // Normalize the L2 distance to be comparable to Hamming distance
-            // Assuming descriptors are normalized and considering a typical scale factor
-            int scaledDist = static_cast<int>(normDist / a.cols * 256);
-
-            cout << "a: " << a.size() << endl;
-            cout << "Distance: " << scaledDist << std::endl;
-
+            std::cout << "Norm distance: " << normDist * 512 << std::endl;
+            int scaledDist = static_cast<int>(normDist * 512);
             return scaledDist;
         }
         else
@@ -2289,6 +2281,7 @@ namespace ORB_SLAM3
                 dist += (((v + (v >> 4)) & 0xF0F0F0F) * 0x1010101) >> 24;
             }
 
+            std::cout << "Distance: " << dist << std::endl;
             return dist;
         }
     }

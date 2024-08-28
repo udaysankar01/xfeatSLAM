@@ -78,6 +78,7 @@ dataset-corridor4_512_16/
 rgbd_dataset_freiburg1_xyz/
 examples/test/test_matcher_orb
 examples/test/test_matcher_xf
+examples/Stereo-Inertial
 
 
 CMakeLists.txt.user
