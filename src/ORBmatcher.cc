@@ -29,13 +29,11 @@
 
 using namespace std;
 
-const int TH_HIGH = atof(std::getenv("TH_HIGH"));
-const int TH_LOW = atof(std::getenv("TH_LOW"));
-
 namespace ORB_SLAM3
 {
     const int ORBmatcher::TH_HIGH = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_HIGH"))) : 100;
     const int ORBmatcher::TH_LOW = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_LOW"))) : 50;
+
     const int ORBmatcher::HISTO_LENGTH = 30;
     
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
