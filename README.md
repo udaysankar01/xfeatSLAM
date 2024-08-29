@@ -72,11 +72,13 @@ make -j8
 Right now, xfeatSLAM supports RGB-D SLAM. To run:
 
 ```bash
-./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt \
+./examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt \
                           examples/RGB-D/TUMX.yaml \
                           PATH_TO_SEQUENCE_FOLDER \
                           ASSOCIATIONS_FILE
 ```
+
+Support for additional sensors will be added soon.
 
 ## Bibtex Citation
 

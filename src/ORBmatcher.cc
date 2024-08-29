@@ -31,9 +31,8 @@ using namespace std;
 
 namespace ORB_SLAM3
 {
-    const int ORBmatcher::TH_HIGH = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_HIGH"))) : 100;
-    const int ORBmatcher::TH_LOW = (std::getenv("USE_ORB") == nullptr) ? (atof(std::getenv("TH_LOW"))) : 50;
-
+    const int ORBmatcher::TH_HIGH = (std::getenv("USE_ORB") == nullptr) ? 1000 : 100;
+    const int ORBmatcher::TH_LOW = (std::getenv("USE_ORB") == nullptr) ? 100 : 50;
     const int ORBmatcher::HISTO_LENGTH = 30;
     
     ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
