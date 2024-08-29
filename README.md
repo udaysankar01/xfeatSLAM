@@ -93,7 +93,7 @@ To run deep Monocular SLAM:
 
 ```bash
 ./examples/Monocular/mono_tum Vocabulary/ORBvoc.txt \
-                              examples/RGB-D/TUMX.yaml \
+                              examples/Monocular/TUMX.yaml \
                               PATH_TO_SEQUENCE_FOLDER
 ```
 
