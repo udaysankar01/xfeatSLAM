@@ -8,7 +8,7 @@ Typically, models used to obtain deep learning-based local features provide accu
 
 First, the entire XFeat model is implemented in C++ using PyTorch C++ API. This implementation can be found separately in [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
 
-<!-- TODO: Add example video for xefatSLAM in action -->
+![xfeatSLAM in action](doc/xfeatSLAM_output.gif)
 
 ## Dependencies
 
@@ -76,6 +76,15 @@ Right now, xfeatSLAM supports RGB-D SLAM. To run:
                           examples/RGB-D/TUMX.yaml \
                           PATH_TO_SEQUENCE_FOLDER \
                           ASSOCIATIONS_FILE
+```
+
+To use ORB feature descriptor instead of XFeat, set the environment variable `USE_ORB` as 1.
+
+```bash
+USE_ORB=1 ./examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt \
+                                    examples/RGB-D/TUMX.yaml \
+                                    PATH_TO_SEQUENCE_FOLDER \
+                                    ASSOCIATIONS_FILE
 ```
 
 Support for additional sensors will be added soon.
