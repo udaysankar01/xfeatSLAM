@@ -51,7 +51,7 @@ git clone https://github.com/udaysankar01/xfeatSLAM
 cd xfeatSLAM
 ```
 
-To install the necessary packages (including DBoW2, Pangolin, g2o, Sophus):
+To install all the necessary packages:
 
 ```bash
 chmod +x project_setup.sh
