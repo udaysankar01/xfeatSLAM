@@ -69,7 +69,7 @@ make -j8
 
 ## RGB-D Example
 
-Right now, xfeatSLAM supports RGB-D SLAM. To run:
+To run deep RGB-D SLAM:
 
 ```bash
 ./examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt \
@@ -85,6 +85,16 @@ USE_ORB=1 ./examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt \
                                     examples/RGB-D/TUMX.yaml \
                                     PATH_TO_SEQUENCE_FOLDER \
                                     ASSOCIATIONS_FILE
+```
+
+## Monocular Example
+
+To run deep Monocular SLAM:
+
+```bash
+./examples/Monocular/mono_tum Vocabulary/ORBvoc.txt \
+                              examples/RGB-D/TUMX.yaml \
+                              PATH_TO_SEQUENCE_FOLDER
 ```
 
 Support for additional sensors will be added soon.

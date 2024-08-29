@@ -146,6 +146,25 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/RGB-D)
 add_executable(rgbd_tum examples/RGB-D/rgbd_tum.cc)
 target_link_libraries(rgbd_tum ${PROJECT_NAME})
 
+# Monocular examples
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/Monocular)
+
+add_executable(mono_tum
+    examples/Monocular/mono_tum.cc)
+target_link_libraries(mono_tum ${PROJECT_NAME})
+
+add_executable(mono_kitti
+    examples/Monocular/mono_kitti.cc)
+target_link_libraries(mono_kitti ${PROJECT_NAME})
+
+add_executable(mono_euroc
+    examples/Monocular/mono_euroc.cc)
+target_link_libraries(mono_euroc ${PROJECT_NAME})
+
+add_executable(mono_tum_vi
+    examples/Monocular/mono_tum_vi.cc)
+target_link_libraries(mono_tum_vi ${PROJECT_NAME})
+
 # Stereo Inertial example
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/Stereo-Inertial)
 
