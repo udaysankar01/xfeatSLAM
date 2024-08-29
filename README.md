@@ -6,7 +6,7 @@ xfeatSLAM is a Visual SLAM system that integrates the lightweight and efficient 
 
 Typically, models used to obtain deep learning-based local features provide accurate descriptions but are highly resource-intensive. The lightweight nature of XFeat makes it particularly well-suited for environments with limited processing power, such as mobile robots and embedded systems, where real-time performance is critical.
 
-First, the entire XFeat model is implemented in C++ using PyTorch C++ API. This implementation can be separately in [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
+First, the entire XFeat model is implemented in C++ using PyTorch C++ API. This implementation can be found separately in [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
 
 <!-- TODO: Add example video for xefatSLAM in action -->
 
@@ -40,7 +40,7 @@ Project was tested using Eigen3 v3.4.0.
 
 ### DBoW2, Sophus and g2o (included in _thirdparty_ folder)
 
-The project use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition, [Sophus](https://github.com/strasdat/Sophus) for Lie groups, and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. Both modified libraries (which are BSD) are included in the _thirdparty_ folder.
+The project use modified versions of the [DBoW2](https://github.com/dorian3d/DBoW2) library to perform place recognition, [Sophus](https://github.com/strasdat/Sophus) for Lie groups, and [g2o](https://github.com/RainerKuemmerle/g2o) library to perform non-linear optimizations. All three modified libraries (which are BSD) are included in the _thirdparty_ folder.
 
 ## Getting Started
 
