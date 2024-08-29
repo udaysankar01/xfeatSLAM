@@ -6,7 +6,7 @@ xfeatSLAM is a Visual SLAM system that integrates the lightweight and efficient 
 
 Typically, models used to obtain deep learning-based local features provide accurate descriptions but are highly resource-intensive. The lightweight nature of XFeat makes it particularly well-suited for environments with limited processing power, such as mobile robots and embedded systems, where real-time performance is critical.
 
-First, the entire XFeat model is implemented in C++ using PyTorch C++ API. This implementation can be found separately in [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
+First, the entire XFeat model is implemented in C++ using PyTorch C++ API. I have separated the code for this implementation into [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
 
 ![xfeatSLAM in action](doc/xfeatSLAM_compressed.gif)
 
