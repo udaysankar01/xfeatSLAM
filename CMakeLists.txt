@@ -33,8 +33,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # for libtorch
 set(CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/thirdparty/pytorch/torch")
-
-# set(CMAKE_PREFIX_PATH "/home/uday/projects/xfeat_cpp/thirdparty/pytorch/torch")
 find_package(Torch REQUIRED)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 message("-- Torch Version: " ${Torch_VERSION})

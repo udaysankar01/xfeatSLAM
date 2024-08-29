@@ -8,7 +8,7 @@ Typically, models used to obtain deep learning-based local features provide accu
 
 First, the entire XFeat model is implemented in C++ using PyTorch C++ API. This implementation can be found separately in [this repo](https://github.com/udaysankar01/xfeat_cpp). This implementation is then integrated into the ORB-SLAM3 pipeline, following an approach similar to that used in [GCNv2 SLAM](https://github.com/jiexiong2016/GCNv2_SLAM).
 
-![xfeatSLAM in action](doc/xfeatSLAM_output.gif)
+![xfeatSLAM in action](doc/xfeatSLAM_compressed.gif)
 
 ## Dependencies
 
