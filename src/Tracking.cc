@@ -599,13 +599,13 @@ void Tracking::newParameterLoader(Settings *settings) {
     else
     {
         mpORBextractorLeft = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
+
+        if(mSensor==System::STEREO || mSensor==System::IMU_STEREO)
+            mpORBextractorRight = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
+
+        if(mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR)
+            mpIniORBextractor = new ORBextractor(5*nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
     }
-
-    if(mSensor==System::STEREO || mSensor==System::IMU_STEREO)
-        mpORBextractorRight = new ORBextractor(nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
-
-    if(mSensor==System::MONOCULAR || mSensor==System::IMU_MONOCULAR)
-        mpIniORBextractor = new ORBextractor(5*nFeatures,fScaleFactor,nLevels,fIniThFAST,fMinThFAST);
 
     //IMU parameters
     Sophus::SE3f Tbc = settings->Tbc();
@@ -1602,7 +1602,10 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
     {
         if (std::getenv("USE_ORB") == nullptr)
         {
-            mCurrentFrame = Frame(mImGray,timestamp,mpXFextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+            if(mState==NOT_INITIALIZED || mState==NO_IMAGES_YET ||(lastID - initID) < mMaxFrames)
+                mCurrentFrame = Frame(mImGray,timestamp,mpXFextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
+            else
+                mCurrentFrame = Frame(mImGray,timestamp,mpXFextractor,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
         }
         else
         {
@@ -1611,7 +1614,6 @@ Sophus::SE3f Tracking::GrabImageMonocular(const cv::Mat &im, const double &times
             else
                 mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mpCamera,mDistCoef,mbf,mThDepth);
         }
-        
     }
     else if(mSensor == System::IMU_MONOCULAR)
     {

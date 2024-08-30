@@ -158,8 +158,7 @@ LBA_Stats.txt
 LocalMapTimeStats.txt
 TrackLocalMapStats.txt
 TrackingTimeStats.txt
-time*
-Time*
+
 Table_Euroc
 Table_TUMVI_rooms/
 *.pyc
