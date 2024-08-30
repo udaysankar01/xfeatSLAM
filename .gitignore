@@ -71,6 +71,7 @@ thirdparty/Pangolin/
 
 ################### Doc #####################
 doc/xfeatSLAM.mkv
+notes.txt
 
 ################## Bash #####################
 build.sh
@@ -89,50 +90,50 @@ rgbd_dataset_freiburg2_xyz/
 CMakeLists.txt.user
 CMakeLists_modified.txt
 
-Examples/RGB-D/rgbd_tum
-Examples/RGB-D/rgbd_realsense_D435i
+examples/RGB-D/rgbd_tum
+examples/RGB-D/rgbd_realsense_D435i
 
-Examples/RGB-D-Inertial/rgbd_inertial_realsense_D435i
+examples/RGB-D-Inertial/rgbd_inertial_realsense_D435i
 
-Examples/Monocular/mono_realsense_D435i
-Examples/Monocular/mono_euroc
-Examples/Monocular/mono_kitti
-Examples/Monocular/mono_tum
-Examples/Monocular/mono_tum_vi
-Examples/Monocular/mono_realsense_t265
+examples/Monocular/mono_realsense_D435i
+examples/Monocular/mono_euroc
+examples/Monocular/mono_kitti
+examples/Monocular/mono_tum
+examples/Monocular/mono_tum_vi
+examples/Monocular/mono_realsense_t265
 
-Examples/Stereo/stereo_euroc
-Examples/Stereo/stereo_kitti
-Examples/Stereo/stereo_tum_vi
-Examples/Stereo/stereo_realsense_t265
-Examples/Stereo/stereo_realsense_D435i
+examples/Stereo/stereo_euroc
+examples/Stereo/stereo_kitti
+examples/Stereo/stereo_tum_vi
+examples/Stereo/stereo_realsense_t265
+examples/Stereo/stereo_realsense_D435i
 
-Examples/Monocular-Inertial/mono_inertial_euroc
-Examples/Monocular-Inertial/mono_inertial_tum_vi
-Examples/Monocular-Inertial/mono_inertial_realsense_t265
-Examples/Monocular-Inertial/mono_inertial_realsense_D435i
-Examples/Monocular-Inertial/mono_inertial_realsense_D435i_2
+examples/Monocular-Inertial/mono_inertial_euroc
+examples/Monocular-Inertial/mono_inertial_tum_vi
+examples/Monocular-Inertial/mono_inertial_realsense_t265
+examples/Monocular-Inertial/mono_inertial_realsense_D435i
+examples/Monocular-Inertial/mono_inertial_realsense_D435i_2
 
-Examples/Stereo-Inertial/stereo_inertial_euroc
-Examples/Stereo-Inertial/stereo_inertial_tum_vi
-Examples/Stereo-Inertial/stereo_inertial_realsense_t265
-Examples/Stereo-Inertial/stereo_inertial_realsense_D435i
+examples/Stereo-Inertial/stereo_inertial_euroc
+examples/Stereo-Inertial/stereo_inertial_tum_vi
+examples/Stereo-Inertial/stereo_inertial_realsense_t265
+examples/Stereo-Inertial/stereo_inertial_realsense_D435i
 
 
-Examples/ROS/ORB_SLAM3/Mono
-Examples/ROS/ORB_SLAM3/Mono_Inertial
-Examples/ROS/ORB_SLAM3/MonoAR
-Examples/ROS/ORB_SLAM3/RGBD
-Examples/ROS/ORB_SLAM3/Stereo
-Examples/ROS/ORB_SLAM3/Stereo_Inertial
+examples/ROS/ORB_SLAM3/Mono
+examples/ROS/ORB_SLAM3/Mono_Inertial
+examples/ROS/ORB_SLAM3/MonoAR
+examples/ROS/ORB_SLAM3/RGBD
+examples/ROS/ORB_SLAM3/Stereo
+examples/ROS/ORB_SLAM3/Stereo_Inertial
 
-Examples/Calibration/recorder_realsense_D435i
+examples/Calibration/recorder_realsense_D435i
 
-Examples/Tests/viewer_dataset
-Examples/Tests/sophus_test
+examples/Tests/viewer_dataset
+examples/Tests/sophus_test
 
-Examples/ROS/ORB_SLAM3/CMakeLists.txt.user
-Examples/ROS/ORB_SLAM3/build/
+examples/ROS/ORB_SLAM3/CMakeLists.txt.user
+examples/ROS/ORB_SLAM3/build/
 
 KeyFrameTrajectory.txt
 CameraTrajectory.txt
