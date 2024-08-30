@@ -164,27 +164,3 @@ target_link_libraries(mono_euroc ${PROJECT_NAME})
 add_executable(mono_tum_vi
     examples/Monocular/mono_tum_vi.cc)
 target_link_libraries(mono_tum_vi ${PROJECT_NAME})
-
-# Stereo Inertial example
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/Stereo-Inertial)
-
-add_executable(stereo_inertial_tum_vi examples/Stereo-Inertial/stereo_inertial_tum_vi.cc)
-target_link_libraries(stereo_inertial_tum_vi ${PROJECT_NAME})
-
-# test examples
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/examples/test)
-
-add_executable(test_extractor examples/test/test_extractor.cc)
-target_link_libraries(test_extractor ${PROJECT_NAME})
-
-add_executable(test_stereo_xf examples/test/test_stereo_xf.cc)
-target_link_libraries(test_stereo_xf ${PROJECT_NAME})
-
-add_executable(test_stereo_orb examples/test/test_stereo_orb.cc)
-target_link_libraries(test_stereo_orb ${PROJECT_NAME})
-
-add_executable(test_matcher_xf examples/test/test_matcher_xf.cc)
-target_link_libraries(test_matcher_xf ${PROJECT_NAME})
-
-add_executable(test_matcher_orb examples/test/test_matcher_orb.cc)
-target_link_libraries(test_matcher_orb ${PROJECT_NAME})
