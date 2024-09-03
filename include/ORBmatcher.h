@@ -68,10 +68,10 @@ namespace ORB_SLAM3
         int SearchByBoW(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
         int SearchByBoW(KeyFrame *pKF1, KeyFrame* pKF2, std::vector<MapPoint*> &vpMatches12);
 
-        // Search matches between MapPoints int a KeyFrame and XFeat in a Frame.
-        int SearchByNN(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
-        int SearchByNN(Frame &CurrentFrame, const Frame &LastFrame);
-        int SearchByNN(Frame &F, const vector<MapPoint*> &vpMapPoints);
+        // // Search matches between MapPoints int a KeyFrame and XFeat in a Frame.
+        // int SearchByNN(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
+        // int SearchByNN(Frame &CurrentFrame, const Frame &LastFrame);
+        // int SearchByNN(Frame &F, const vector<MapPoint*> &vpMapPoints);
 
         // For matching XFeat
         void match(cv::Mat _frame1_desc, cv::Mat _frame2_desc, std::vector<cv::DMatch> &_matches);
